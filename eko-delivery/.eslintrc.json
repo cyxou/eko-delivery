@@ -1,0 +1,24 @@
+{
+  "root": true,
+  "extends": "eslint:recommended",
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true,
+      "impliedStrict": true
+    }
+  },
+  "rules": {
+    "semi": 2,
+    "no-console": 0,
+    "no-unused-vars": 1,
+    "comma-dangle": 1,
+    "no-mixed-spaces-and-tabs": 2,
+    "no-return-await": 2
+  }
+}

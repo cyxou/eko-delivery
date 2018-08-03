@@ -1,0 +1,44 @@
+{
+  "name": "eko-delivery",
+  "version": "1.0.0",
+  "description": "Eko delivery service",
+  "main": "build/index.js",
+  "preferGlobal": true,
+  "bin": "build/contact.js",
+  "scripts": {
+    "//01": "------------------------------------------------------------------",
+    "//02": "                       UTILITIES                                  ",
+    "//03": "------------------------------------------------------------------",
+    "lint": "eslint ./src/**/*.js",
+    "lint:fix": "eslint --fix ./",
+    "clean": "rm -rf coverage 2> /dev/null",
+    "//11": "------------------------------------------------------------------",
+    "//12": "                       TESTS                                      ",
+    "//13": "------------------------------------------------------------------",
+    "pretest": "npm run lint -s && npm run clean -s",
+    "watch:test": "chokidar '**/*.js' --initial --ignore '/node_modules/' --ignore '/coverage/' -c 'npm run test:nocov -s'",
+    "test": "tap --coverage-report=text --reporter=spec --no-browser src/test/**/*.spec.js",
+    "test:nocov": "tap --coverage-report=html --reporter=spec --no-browser src/test/**/*.spec.js",
+    "debug": "node ./test/instapage.service.spec.js",
+    "coverage": "nyc --reporter=html npm test",
+    "coverage:check": "nyc check-coverage --lines 95 --functions 95 --branches 95 npm test",
+    "start": "nodemon src"
+  },
+  "author": "Alexander Sukhovetchenko <acyxou@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "2.4.1",
+    "commander": "2.16.0",
+    "neo4j-driver": "1.6.3",
+    "ora": "3.0.0",
+    "outdent": "0.5.0"
+  },
+  "devDependencies": {
+    "chokidar-cli": "1.2.0",
+    "eslint": "5.2.0",
+    "nodemon": "1.18.3",
+    "proxyquire": "2.0.1",
+    "sinon": "6.1.4",
+    "tap": "12.0.1"
+  }
+}

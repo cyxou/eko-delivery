@@ -1,0 +1,23 @@
+{
+  "libs": ["ecmascript"],
+  "plugins": {
+    "node": {},
+    "es_modules": {},
+    "complete_strings": {}
+  },
+  "loadEagerly": [
+    "src/**/*.js"
+  ],
+  "dontLoad": [
+    "node_modules/**"
+  ],
+  "plugins": {
+    "es_modules": {},
+    "node": {},
+    "doc_comment": {
+      "fullDocs": true,
+      "strong": true
+    }
+  },
+  "ecmaVersion": 6
+}
