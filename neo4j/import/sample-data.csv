@@ -1,0 +1,11 @@
+from,to,cost
+A,B,1
+A,C,4
+A,D,10
+B,E,3
+C,D,4
+C,F,2
+D,E,1
+E,B,3
+E,A,2
+F,D,1
