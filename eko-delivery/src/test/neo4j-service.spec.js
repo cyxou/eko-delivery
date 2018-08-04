@@ -64,13 +64,7 @@ tap.test('#calculateDeliveryCost()', async (t) => {
     const expectedCost = 777;
 
     const fakeResponse = {
-      records: [
-        {
-          _fields: [
-            {low: expectedCost, high: 0}
-          ]
-        }
-      ]
+      records: [ { _fields: [ {low: expectedCost, high: 0} ] } ]
     };
 
     sinon.stub(fakeSession, 'run').resolves(fakeResponse);
@@ -119,13 +113,7 @@ tap.test('#calculatePossibleDeliveryRoutes()', async (t) => {
     const expectedNumberOfRoutes = 5;
 
     const fakeResponse = {
-      records: [
-        {
-          _fields: [
-            {low: expectedNumberOfRoutes, high: 0}
-          ]
-        }
-      ]
+      records: [ { _fields: [ {low: expectedNumberOfRoutes, high: 0} ] } ]
     };
 
     sinon.stub(fakeSession, 'run').resolves(fakeResponse);
@@ -148,13 +136,7 @@ tap.test('#calculatePossibleDeliveryRoutes()', async (t) => {
     const expectedNumberOfRoutes = 5;
 
     const fakeResponse = {
-      records: [
-        {
-          _fields: [
-            {low: expectedNumberOfRoutes, high: 0}
-          ]
-        }
-      ]
+      records: [ { _fields: [ {low: expectedNumberOfRoutes, high: 0} ] } ]
     };
 
     sinon.stub(fakeSession, 'run').resolves(fakeResponse);
@@ -165,6 +147,34 @@ tap.test('#calculatePossibleDeliveryRoutes()', async (t) => {
 
     tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
     tt.equal(cost, expectedNumberOfRoutes, 'number of routes as expected');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+});
+
+tap.test('#calculateCheapestRoute()', async (t) => {
+  t.test('should return the cheapest delivery route between two towns', async (tt) => {
+    const fakeRoute = ['A', 'B'];
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[r*..]->(t1:Town {name: 'B'})
+      WITH reduce(total = 0, x in relationships(p) | total + x.cost) as cheapestCost
+      RETURN cheapestCost
+      ORDER BY cheapestCost ASC
+      LIMIT 1`;
+    const expectedCost = 777;
+
+    const fakeResponse = {
+      records: [ { _fields: [ {low: expectedCost, high: 0} ] } ]
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculateCheapestRoute(fakeRoute);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
+    tt.equal(cost, expectedCost, 'cost as expected');
     tt.ok(fakeSession.close.calledOnce, 'session was closed');
     tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
   });

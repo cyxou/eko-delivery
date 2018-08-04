@@ -26,6 +26,12 @@ program
   .description('Calculate the number of possible delivery routes between two towns')
   .action(actions.calculatePossibleDeliveryRoutes);
 
+program
+  .command('get-cheapest-route <from> <to>')
+  .description('Calculate the cheapest delivery route between two towns')
+  .usage('<from> <to>')
+  .action(actions.calculateCheapestRoute);
+
 program.parse(process.argv);
 
 process.on('unhandledRejection', err => {

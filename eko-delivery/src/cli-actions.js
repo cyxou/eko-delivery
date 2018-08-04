@@ -6,7 +6,8 @@ const outdent    = require('outdent');
 module.exports = {
   populateDb,
   calculateDeliveryCost,
-  calculatePossibleDeliveryRoutes
+  calculatePossibleDeliveryRoutes,
+  calculateCheapestRoute
 };
 
 /**
@@ -102,6 +103,34 @@ async function calculatePossibleDeliveryRoutes(from, to,
     ));
     return handleError(err);
   }
+}
+
+async function calculateCheapestRoute(from, to) {
+  let route = [from, to];
+
+  const spinner = ora(
+    `Calculating the cheapest delivery route between "${from}" and "${to}"...`
+  ).start();
+
+  try {
+    const res = await neo4jService.calculateCheapestRoute(route);
+
+    spinner.succeed();
+
+    if (Number.isNaN(parseInt(res, 10))) return console.log(chalk.yellow(res));
+
+    console.log(chalk.magenta(outdent`
+      The cheapest route costs ${chalk.bold.green(res)}`
+    ));
+
+  } catch(err) {
+    spinner.fail();
+    console.log(chalk.bold.red(
+      `Error occured clculating possible delivery routes: ${err.message}`
+    ));
+    return handleError(err);
+  }
+
 }
 
 function handleError(err) {

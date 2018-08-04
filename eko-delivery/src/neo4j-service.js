@@ -11,7 +11,8 @@ const session = driver.session();
 module.exports = {
   populateDb,
   calculateDeliveryCost,
-  calculatePossibleDeliveryRoutes
+  calculatePossibleDeliveryRoutes,
+  calculateCheapestRoute
 };
 
 /**
@@ -28,16 +29,10 @@ async function populateDb() {
     CREATE (from)-[:ROUTE {cost: toInt(row.cost)}]->(to)`;
 
   try {
-    const result = await session.run(populationQuery);
+    await session.run(populationQuery);
 
     // Additionaly create index on town names
-    await session.run('CREATE INDEX ON :Town(name)');
-
-    session.close();
-    driver.close();
-
-    return Promise.resolve(result);
-
+    return makeDbRequest('CREATE INDEX ON :Town(name)');
   } catch(err) {
     session.close();
     driver.close();
@@ -71,7 +66,7 @@ function calculateDeliveryCost(route) {
 /**
  * Calculate possible delivery routes between two towns.
  *
- * @param {string[]} route Array of two two towns, 'from' and 'to'
+ * @param {string[]} route Array of two towns, 'from' and 'to'
  * @param {Object} opts
  * @param {number} [opts.maxStops=0] Maximum number of stops for the route
  * @param {boolean} [opts.routeReuse=true] Allow to to use the same route twice
@@ -81,6 +76,23 @@ function calculatePossibleDeliveryRoutes([from, to], opts) {
   let query = outdent`
     MATCH p = (t0:Town {name: '${from}'})-[r*..${opts.maxStops ? opts.maxStops : ''}]->(t1:Town {name: '${to}'})
     RETURN count(p)`;
+
+  return makeDbRequest(query);
+}
+
+/**
+ * Calculate the cheapest delivery route between two towns
+ *
+ * @param {string[]} route Array of towns representing a route
+ * @returns {Promise}
+ */
+function calculateCheapestRoute([from, to]) {
+  let query = outdent`
+    MATCH p = (t0:Town {name: '${from}'})-[r*..]->(t1:Town {name: '${to}'})
+    WITH reduce(total = 0, x in relationships(p) | total + x.cost) as cheapestCost
+    RETURN cheapestCost
+    ORDER BY cheapestCost ASC
+    LIMIT 1`;
 
   return makeDbRequest(query);
 }
@@ -103,6 +115,7 @@ async function makeDbRequest(query) {
 }
 
 function parseResponse(response) {
+  if (!response) return;
   if (!response.records.length) return 'No Such Route';
 
   const cost = response.records[0]._fields[0].low;
