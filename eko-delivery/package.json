@@ -29,6 +29,7 @@
   "dependencies": {
     "chalk": "2.4.1",
     "commander": "2.16.0",
+    "inquirer": "6.0.0",
     "neo4j-driver": "1.6.3",
     "ora": "3.0.0",
     "outdent": "0.5.0"

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-const program = require('commander');
-const chalk   = require('chalk');
-const actions = require('./cli-actions');
+const program   = require('commander');
+const chalk     = require('chalk');
+const inquirer  = require('inquirer');
+const actions   = require('./cli-actions');
+const questions = require('./questions');
 
 program
   .version('1.0.0', '-v, --version')
@@ -34,6 +36,12 @@ program
 
 program.parse(process.argv);
 
+// If user hasn't provided any input to the cli, than use inquirer to help him
+// decide what to do.
+if (!process.argv.slice(2).length) {
+  startInteractiveMode();
+}
+
 process.on('unhandledRejection', err => {
   console.log(chalk.bold.red(`unhandledRejection: ${err.message}`));
 });
@@ -41,6 +49,24 @@ process.on('unhandledRejection', err => {
 process.on('uncaughtException', err => {
   console.error(chalk.bold.red(`uncaughtException: ${err.message}`));
 });
+
+async function startInteractiveMode() {
+  const answers = await inquirer.prompt(questions);
+
+  switch (answers.action) {
+    case 'calculateDeliveryCost':
+      return actions[answers.action](answers.route);
+
+    case 'calculatePossibleDeliveryRoutes':
+      return actions[answers.action](answers.route[0], answers.route[1], {
+        maxStops: answers.maxStops,
+        routeReuse: answers.routeReuse
+      });
+
+    case 'calculateCheapestRoute':
+      return actions[answers.action](answers.route[0], answers.route[1]);
+  }
+}
 
 function validateInt(x) {
   if (isInteger(parseInt(x, 10))) return x;

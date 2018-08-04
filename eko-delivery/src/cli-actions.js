@@ -42,10 +42,15 @@ async function populateDb() {
  * @returns {number} Cost of the route delivery
  */
 async function calculateDeliveryCost(route, towns) {
-  route = route.split(',').map(item => item.trim());
+  route = route.replace(/\s+/g, ',').split(',').reduce((acc, item) => {
+    item !== '' && acc.push(item.trim());
+    return acc;
+  }, []);
+
   if (towns) route = [...route, ...towns];
 
-  const spinner = ora(`Calculating delivery cost for the "${route}" route...`).start();
+  const prettyRoute = route.toString().replace(/,/g,'-');
+  const spinner = ora(`Calculating delivery cost for the "${prettyRoute}" route...`).start();
 
   try {
     const res = await neo4jService.calculateDeliveryCost(route);
@@ -54,7 +59,7 @@ async function calculateDeliveryCost(route, towns) {
     if (Number.isNaN(parseInt(res, 10))) return console.log(chalk.yellow(res));
 
     console.log(chalk.magenta(outdent`
-      "${route}" delivery cost: ${chalk.bold.green(res)}`
+      "${prettyRoute}" delivery cost is ${chalk.bold.green(res)}`
     ));
 
   } catch(err) {
@@ -105,6 +110,13 @@ async function calculatePossibleDeliveryRoutes(from, to,
   }
 }
 
+/**
+ * Handles the calculate the cheapest delivery route between two towns
+ *
+ * @param {string} from
+ * @param {string} to
+ * @returns {Promise}
+ */
 async function calculateCheapestRoute(from, to) {
   let route = [from, to];
 
@@ -130,7 +142,6 @@ async function calculateCheapestRoute(from, to) {
     ));
     return handleError(err);
   }
-
 }
 
 function handleError(err) {
