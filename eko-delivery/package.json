@@ -4,7 +4,7 @@
   "description": "Eko delivery service",
   "main": "build/index.js",
   "preferGlobal": true,
-  "bin": "build/contact.js",
+  "bin": "src/index.js",
   "scripts": {
     "//01": "------------------------------------------------------------------",
     "//02": "                       UTILITIES                                  ",
