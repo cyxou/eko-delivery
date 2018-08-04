@@ -19,7 +19,14 @@ module.exports = [
         value: 'calculateCheapestRoute'
       },
       new inquirer.Separator(),
-      {name: 'Populate database with new data', value: 'populateDb'}
+      {
+        name: 'Populate the database with data',
+        value: 'populateDb'
+      },
+      {
+        name: 'Clear the database',
+        value: 'clearDb'
+      }
     ]
   },
   {
@@ -68,6 +75,19 @@ module.exports = [
     message: 'Allow to use the same route twice?',
     default: true,
     when: answer => answer.action === 'calculatePossibleDeliveryRoutes'
+  },
+  {
+    type: 'confirm',
+    name: 'confirmPopulateDb',
+    message: 'Please don\'t do it unless your database is clean. Otherwise clear the database first. Continue?',
+    default: false,
+    when: answer => answer.action === 'populateDb'
+  },
+  {
+    type: 'confirm',
+    name: 'confirmClearDb',
+    message: 'Are you sure you want to clear all data from the database?',
+    default: false,
+    when: answer => answer.action === 'clearDb'
   }
-
 ];

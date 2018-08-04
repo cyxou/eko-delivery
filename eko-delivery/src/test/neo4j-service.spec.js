@@ -35,7 +35,7 @@ tap.afterEach(done => {
 });
 
 tap.test('#populateDb()', async (t) => {
-  t.test('should populate db calling corresponding neo4j method', async (tt) => {
+  t.test('should populate db calling corresponding neo4j query', async (tt) => {
     const expected = outdent`
       LOAD CSV WITH HEADERS FROM "file:///${config.dataFileName}" AS row
       MERGE (from:Town {id: row.from, name: row.from})
@@ -47,6 +47,23 @@ tap.test('#populateDb()', async (t) => {
     sinon.spy(fakeDriver, 'close');
 
     await neo4jService.populateDb();
+
+    tt.equal(fakeSession.run.firstCall.args[0], expected, 'executed cypher query');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+});
+
+tap.test('#clearDb()', async (t) => {
+  t.test('should clear db calling corresponding neo4j query', async (tt) => {
+    const expected = outdent`
+      MATCH (a) OPTIONAL MATCH (a)-[r1]-() DELETE a,r1`;
+
+    sinon.stub(fakeSession, 'run').resolves();
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    await neo4jService.clearDb();
 
     tt.equal(fakeSession.run.firstCall.args[0], expected, 'executed cypher query');
     tt.ok(fakeSession.close.calledOnce, 'session was closed');

@@ -10,6 +10,7 @@ const session = driver.session();
 
 module.exports = {
   populateDb,
+  clearDb,
   calculateDeliveryCost,
   calculatePossibleDeliveryRoutes,
   calculateCheapestRoute
@@ -38,6 +39,18 @@ async function populateDb() {
     driver.close();
     return Promise.reject(err);
   }
+}
+
+/**
+ * Clears database
+ *
+ * @returns {Promise}
+ */
+async function clearDb() {
+  const query = outdent`
+    MATCH (a) OPTIONAL MATCH (a)-[r1]-() DELETE a,r1`;
+
+  return makeDbRequest(query);
 }
 
 /**

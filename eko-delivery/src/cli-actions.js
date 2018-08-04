@@ -5,6 +5,7 @@ const outdent    = require('outdent');
 
 module.exports = {
   populateDb,
+  clearDb,
   calculateDeliveryCost,
   calculatePossibleDeliveryRoutes,
   calculateCheapestRoute
@@ -31,6 +32,26 @@ async function populateDb() {
   } catch(err) {
     spinner.fail();
     console.log(chalk.bold.red(`Error occured populating DB: ${err.message}`));
+    return handleError(err);
+  }
+}
+
+async function clearDb() {
+  const spinner = ora('Clearing DB...').start();
+
+  try {
+
+    await neo4jService.clearDb();
+
+    spinner.succeed();
+    console.log(chalk.green(outdent`
+      Database cleared!
+      You may populate it again if you want.`
+    ));
+
+  } catch(err) {
+    spinner.fail();
+    console.log(chalk.bold.red(`Error occured clearing DB: ${err.message}`));
     return handleError(err);
   }
 }

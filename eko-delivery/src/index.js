@@ -16,6 +16,11 @@ program
   .action(actions.populateDb);
 
 program
+  .command('clear-db')
+  .description('Clear the Neo4j DB')
+  .action(actions.clearDb);
+
+program
   .command('get-delivery-cost <route> [towns...]')
   .description('Calculate the delivery cost of the given delivery route.')
   .usage('<route> [towns...]')
@@ -54,6 +59,14 @@ async function startInteractiveMode() {
   const answers = await inquirer.prompt(questions);
 
   switch (answers.action) {
+    case 'populateDb':
+      if (answers.confirmPopulateDb) return actions[answers.action]();
+      break;
+
+    case 'clearDb':
+      if (answers.confirmClearDb) return actions[answers.action]();
+      break;
+
     case 'calculateDeliveryCost':
       return actions[answers.action](answers.route);
 
