@@ -54,4 +54,59 @@ tap.test('#populateDb()', async (t) => {
   });
 });
 
+tap.test('#populateDb()', async (t) => {
+  t.test('should return delivery cost for the specified route', async (tt) => {
+    const fakeRoute = ['A', 'B', 'C'];
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[:ROUTE]->(t1:Town {name: 'B'})-[:ROUTE]->(t2:Town {name: 'C'})
+      WITH reduce(total = 0, x in relationships(p)| total + x.cost) as cost
+      RETURN cost`;
+    const expectedCost = 777;
+
+    const fakeResponse = {
+      records: [
+        {
+          _fields: [
+            {low: expectedCost, high: 0}
+          ]
+        }
+      ]
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculateDeliveryCost(fakeRoute);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed population query');
+    tt.equal(cost, expectedCost, 'cost as expected');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+  t.test('should return "No Such Route" if provided route does not exist', async (tt) => {
+    const fakeRoute = ['A', 'B', 'C'];
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[:ROUTE]->(t1:Town {name: 'B'})-[:ROUTE]->(t2:Town {name: 'C'})
+      WITH reduce(total = 0, x in relationships(p)| total + x.cost) as cost
+      RETURN cost`;
+    const expectedCost = 'No Such Route';
+
+    const fakeResponse = {
+      records: []
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculateDeliveryCost(fakeRoute);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed population query');
+    tt.equal(cost, expectedCost, 'route does not exist');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+});
+
 function noop() {}

@@ -1,27 +1,65 @@
-const controller = require('./neo4j-service');
+const neo4jService = require('./neo4j-service');
 const chalk      = require('chalk');
 const ora        = require('ora');
 const outdent    = require('outdent');
 
 module.exports = {
-  populateDb
+  populateDb,
+  calculateDeliveryCost
 };
 
-function populateDb() {
+/**
+ * Handles the populate database action
+ *
+ * @returns {undefined}
+ */
+async function populateDb() {
   const spinner = ora('Populating DB...').start();
 
-  controller.populateDb().then(() => {
+  try {
+
+    await neo4jService.populateDb();
+
     spinner.succeed();
     console.log(chalk.green(outdent`
       Database successfully populated!
       You may calculate your delivery now.`
     ));
-  })
-    .catch(err => {
-      spinner.fail();
-      console.log(chalk.bold.red(`Error occured populating DB: ${err.message}`));
-      return handleError(err);
-    });
+
+  } catch(err) {
+    spinner.fail();
+    console.log(chalk.bold.red(`Error occured populating DB: ${err.message}`));
+    return handleError(err);
+  }
+}
+
+/**
+ * Handles the calculate delivery cost action
+ *
+ * @param {string} route Route representation in the following format: "A,B,C,D"
+ * @returns {number} Cost of the route delivery
+ */
+async function calculateDeliveryCost(route, towns) {
+  route = route.split(',').map(item => item.trim());
+  if (towns) route = [...route, ...towns];
+
+  const spinner = ora(`Calculating delivery cost for the "${route}" route...`).start();
+
+  try {
+    const res = await neo4jService.calculateDeliveryCost(route);
+    spinner.succeed();
+
+    if (Number.isNaN(parseInt(res))) return console.log(chalk.yellow(res));
+
+    console.log(chalk.magenta(outdent`
+      "${route}" delivery cost: ${chalk.bold.green(res)}`
+    ));
+
+  } catch(err) {
+    spinner.fail();
+    console.log(chalk.bold.red(`Error occured clculating delivery cost: ${err.message}`));
+    return handleError(err);
+  }
 }
 
 function handleError(err) {
@@ -38,5 +76,6 @@ function handleError(err) {
       environment variable to Neo4j docker container.`
     ));
   }
+
   process.exit();
 }
