@@ -48,13 +48,13 @@ tap.test('#populateDb()', async (t) => {
 
     await neo4jService.populateDb();
 
-    tt.equal(fakeSession.run.firstCall.args[0], expected, 'executed population query');
+    tt.equal(fakeSession.run.firstCall.args[0], expected, 'executed cypher query');
     tt.ok(fakeSession.close.calledOnce, 'session was closed');
     tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
   });
 });
 
-tap.test('#populateDb()', async (t) => {
+tap.test('#calculateDeliveryCost()', async (t) => {
   t.test('should return delivery cost for the specified route', async (tt) => {
     const fakeRoute = ['A', 'B', 'C'];
     const expectedQuery = outdent`
@@ -79,7 +79,7 @@ tap.test('#populateDb()', async (t) => {
 
     const cost = await neo4jService.calculateDeliveryCost(fakeRoute);
 
-    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed population query');
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
     tt.equal(cost, expectedCost, 'cost as expected');
     tt.ok(fakeSession.close.calledOnce, 'session was closed');
     tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
@@ -102,8 +102,69 @@ tap.test('#populateDb()', async (t) => {
 
     const cost = await neo4jService.calculateDeliveryCost(fakeRoute);
 
-    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed population query');
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
     tt.equal(cost, expectedCost, 'route does not exist');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+});
+
+tap.test('#calculatePossibleDeliveryRoutes()', async (t) => {
+  t.test('should return number of possible routes between provided towns', async (tt) => {
+    const fakeRoute = ['A', 'B'];
+    const fakeOpts = {maxStops: 0, routeReuse: true};
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[r*..]->(t1:Town {name: 'B'})
+      RETURN count(p)`;
+    const expectedNumberOfRoutes = 5;
+
+    const fakeResponse = {
+      records: [
+        {
+          _fields: [
+            {low: expectedNumberOfRoutes, high: 0}
+          ]
+        }
+      ]
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculatePossibleDeliveryRoutes(fakeRoute, fakeOpts);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
+    tt.equal(cost, expectedNumberOfRoutes, 'number of routes as expected');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+  t.test('should return number of possible routes between provided towns within specified max number of stops', async (tt) => {
+    const fakeRoute = ['A', 'B'];
+    const fakeOpts = {maxStops: 10, routeReuse: true};
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[r*..10]->(t1:Town {name: 'B'})
+      RETURN count(p)`;
+    const expectedNumberOfRoutes = 5;
+
+    const fakeResponse = {
+      records: [
+        {
+          _fields: [
+            {low: expectedNumberOfRoutes, high: 0}
+          ]
+        }
+      ]
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculatePossibleDeliveryRoutes(fakeRoute, fakeOpts);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
+    tt.equal(cost, expectedNumberOfRoutes, 'number of routes as expected');
     tt.ok(fakeSession.close.calledOnce, 'session was closed');
     tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
   });

@@ -19,6 +19,12 @@ program
   .usage('<route> [towns...]')
   .action(actions.calculateDeliveryCost);
 
+program
+  .command('get-possible-routes <from> <to>')
+  .option('--max-stops <val>', 'Maximum stops on the route', validateInt)
+  .option('--no-route-reuse', 'Do not allow to use the same route twice')
+  .description('Calculate the number of possible delivery routes between two towns')
+  .action(actions.calculatePossibleDeliveryRoutes);
 
 program.parse(process.argv);
 
@@ -29,3 +35,10 @@ process.on('unhandledRejection', err => {
 process.on('uncaughtException', err => {
   console.error(chalk.bold.red(`uncaughtException: ${err.message}`));
 });
+
+function validateInt(x) {
+  if (isInteger(parseInt(x, 10))) return x;
+  console.error(chalk.red('error: --max-stops option expects integer value'));
+  process.exit();
+}
+function isInteger(x) { return (x ^ 0) === x; }

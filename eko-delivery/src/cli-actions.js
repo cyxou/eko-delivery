@@ -5,7 +5,8 @@ const outdent    = require('outdent');
 
 module.exports = {
   populateDb,
-  calculateDeliveryCost
+  calculateDeliveryCost,
+  calculatePossibleDeliveryRoutes
 };
 
 /**
@@ -49,7 +50,7 @@ async function calculateDeliveryCost(route, towns) {
     const res = await neo4jService.calculateDeliveryCost(route);
     spinner.succeed();
 
-    if (Number.isNaN(parseInt(res))) return console.log(chalk.yellow(res));
+    if (Number.isNaN(parseInt(res, 10))) return console.log(chalk.yellow(res));
 
     console.log(chalk.magenta(outdent`
       "${route}" delivery cost: ${chalk.bold.green(res)}`
@@ -57,7 +58,48 @@ async function calculateDeliveryCost(route, towns) {
 
   } catch(err) {
     spinner.fail();
-    console.log(chalk.bold.red(`Error occured clculating delivery cost: ${err.message}`));
+    console.log(chalk.bold.red(
+      `Error occured clculating delivery cost: ${err.message}`
+    ));
+    return handleError(err);
+  }
+}
+
+/**
+ * Handles the calculate possible delivery routes action
+ *
+ * @param {string} route Route representation in the following format: "A,B,C,D"
+ * @returns {number} Cost of the route delivery
+ */
+async function calculatePossibleDeliveryRoutes(from, to,
+  { maxStops = 0, routeReuse = true }
+) {
+  let route = [from, to];
+
+  const spinner = ora(
+    `Calculating possible delivery routes between "${from}" and "${to}"` +
+    (maxStops ? ` within maximum of ${maxStops} stop(s)` : ``) + `...`
+  ).start();
+
+  try {
+    const res = await neo4jService.calculatePossibleDeliveryRoutes(
+      route, {maxStops, routeReuse}
+    );
+
+    spinner.succeed();
+
+    if (Number.isNaN(parseInt(res, 10))) return console.log(chalk.yellow(res));
+
+    console.log(chalk.magenta(outdent`
+      ${chalk.bold.green(res)} possible route(s) found` +
+      (maxStops ? ` within maximum of ${maxStops} stop(s)` : ``)
+    ));
+
+  } catch(err) {
+    spinner.fail();
+    console.log(chalk.bold.red(
+      `Error occured clculating possible delivery routes: ${err.message}`
+    ));
     return handleError(err);
   }
 }

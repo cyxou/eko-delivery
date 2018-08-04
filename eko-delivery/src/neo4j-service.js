@@ -10,7 +10,8 @@ const session = driver.session();
 
 module.exports = {
   populateDb,
-  calculateDeliveryCost
+  calculateDeliveryCost,
+  calculatePossibleDeliveryRoutes
 };
 
 /**
@@ -50,7 +51,7 @@ async function populateDb() {
  * @param {string[]} route Array of towns representing a route
  * @returns {Promise}
  */
-async function calculateDeliveryCost(route) {
+function calculateDeliveryCost(route) {
   let matchClause = 'MATCH p = ';
   matchClause = route.reduce((res, item, idx) => {
     const len = route.length;
@@ -64,6 +65,27 @@ async function calculateDeliveryCost(route) {
     RETURN cost
   `;
 
+  return makeDbRequest(query);
+}
+
+/**
+ * Calculate possible delivery routes between two towns.
+ *
+ * @param {string[]} route Array of two two towns, 'from' and 'to'
+ * @param {Object} opts
+ * @param {number} [opts.maxStops=0] Maximum number of stops for the route
+ * @param {boolean} [opts.routeReuse=true] Allow to to use the same route twice
+ * @returns {Promise}
+ */
+function calculatePossibleDeliveryRoutes([from, to], opts) {
+  let query = outdent`
+    MATCH p = (t0:Town {name: '${from}'})-[r*..${opts.maxStops ? opts.maxStops : ''}]->(t1:Town {name: '${to}'})
+    RETURN count(p)`;
+
+  return makeDbRequest(query);
+}
+
+async function makeDbRequest(query) {
   try {
     const res = await session.run(query);
     //console.log('Response: ', JSON.stringify(res, true, 5));
