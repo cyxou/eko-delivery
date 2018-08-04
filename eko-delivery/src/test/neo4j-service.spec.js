@@ -1,8 +1,12 @@
-const proxyquire = require('proxyquire');
-const sinon      = require('sinon');
-const tap        = require('tap');
-const config     = require('../config');
-const outdent    = require('outdent');
+const proxyquire  = require('proxyquire');
+const sinon       = require('sinon');
+const tap         = require('tap');
+const Configstore = require('configstore');
+const pkg         = require('../../package.json');
+const outdent     = require('outdent');
+
+const config = new Configstore(pkg.name);
+console.log(config);
 
 const fakeSession = {
   run: noop,

@@ -1,10 +1,13 @@
-const neo4j   = require('neo4j-driver').v1;
-const config  = require('./config');
-const outdent = require('outdent');
+const neo4j       = require('neo4j-driver').v1;
+const Configstore = require('configstore');
+const pkg         = require('../package.json');
+const outdent     = require('outdent');
+
+const config = new Configstore(pkg.name);
 
 const driver = neo4j.driver(
-  config.neo4j.uri,
-  neo4j.auth.basic(config.neo4j.user, config.neo4j.password)
+  config.get('neo4j.uri'),
+  neo4j.auth.basic(config.get('neo4j.user'), config.get('neo4j.password'))
 );
 const session = driver.session();
 
@@ -24,7 +27,7 @@ module.exports = {
  */
 async function populateDb() {
   const populationQuery = outdent`
-    LOAD CSV WITH HEADERS FROM "file:///${config.dataFileName}" AS row
+    LOAD CSV WITH HEADERS FROM "file:///${config.get('dataFileName')}" AS row
     MERGE (from:Town {id: row.from, name: row.from})
     MERGE (to:Town {id: row.to, name: row.to})
     CREATE (from)-[:ROUTE {cost: toInt(row.cost)}]->(to)`;

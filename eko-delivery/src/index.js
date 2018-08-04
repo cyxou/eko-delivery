@@ -1,14 +1,42 @@
 #!/usr/bin/env node
 
-const program   = require('commander');
-const chalk     = require('chalk');
-const inquirer  = require('inquirer');
-const actions   = require('./cli-actions');
-const questions = require('./questions');
+// Create configuration file for persistance
+const Configstore = require('configstore');
+const defaultConf = require('./config');
+const pkg         = require('../package.json');
+new Configstore(pkg.name, defaultConf);
+
+const program     = require('commander');
+const chalk       = require('chalk');
+const inquirer    = require('inquirer');
+const clear       = require('clear');
+const figlet      = require('figlet');
+const actions     = require('./cli-actions');
+const questions   = require('./questions');
+
+// Clear the terminal and create a fancy app logo
+clear();
+console.log(
+  chalk.green(
+    figlet.textSync('Eko Delivery', {
+      horizontalLayout: 'default',
+      verticalLayout: 'default'
+    })
+  )
+);
 
 program
   .version('1.0.0', '-v, --version')
   .description('Eko Delivery Service');
+
+program
+  .command('config')
+  .option('--neo4j-uri [val]', 'Set Neo4j database uri')
+  .option('--neo4j-user [val]', 'Set Neo4j authentification user')
+  .option('--neo4j-password [val]', 'Set Neo4j authentification password')
+  .option('--data-file [val]', 'Set data file name for database populating')
+  .description('Set app config parameters')
+  .action(actions.setConfig);
 
 program
   .command('populate-db')
@@ -66,6 +94,14 @@ async function startInteractiveMode() {
     case 'clearDb':
       if (answers.confirmClearDb) return actions[answers.action]();
       break;
+
+    case 'setConfig':
+      return actions[answers.action]({
+        neo4jUri: answers.neo4jUri,
+        neo4jUser: answers.neo4jUser,
+        neo4jPassword: answers.neo4jPassword,
+        dataFile: answers.dataFile
+      });
 
     case 'calculateDeliveryCost':
       return actions[answers.action](answers.route);

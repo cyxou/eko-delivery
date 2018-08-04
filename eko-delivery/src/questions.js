@@ -1,4 +1,5 @@
 const inquirer  = require('inquirer');
+const defaultConf = require('./config');
 
 module.exports = [
   {
@@ -26,6 +27,10 @@ module.exports = [
       {
         name: 'Clear the database',
         value: 'clearDb'
+      },
+      {
+        name: 'Change config parameters',
+        value: 'setConfig'
       }
     ]
   },
@@ -89,5 +94,33 @@ module.exports = [
     message: 'Are you sure you want to clear all data from the database?',
     default: false,
     when: answer => answer.action === 'clearDb'
+  },
+  {
+    type: 'input',
+    name: 'dataFile',
+    message: 'Name of CSV file for database population',
+    default: defaultConf.dataFileName,
+    when: answer => answer.action === 'setConfig'
+  },
+  {
+    type: 'input',
+    name: 'neo4jUri',
+    message: 'Type in Neo4j uri including port number if it differs from default',
+    default: defaultConf.neo4j.uri,
+    when: answer => answer.action === 'setConfig'
+  },
+  {
+    type: 'input',
+    name: 'neo4jUser',
+    message: 'Type in Neo4j user to use for authentification',
+    default: defaultConf.neo4j.user,
+    when: answer => answer.action === 'setConfig'
+  },
+  {
+    type: 'password',
+    name: 'neo4jPassword',
+    message: 'Type in Neo4j password to use for authentification',
+    default: defaultConf.neo4j.password,
+    when: answer => answer.action === 'setConfig'
   }
 ];

@@ -28,7 +28,10 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "2.4.1",
+    "clear": "0.1.0",
     "commander": "2.16.0",
+    "configstore": "4.0.0",
+    "figlet": "1.2.0",
     "inquirer": "6.0.0",
     "neo4j-driver": "1.6.3",
     "ora": "3.0.0",

@@ -1,11 +1,16 @@
 const neo4jService = require('./neo4j-service');
-const chalk      = require('chalk');
-const ora        = require('ora');
-const outdent    = require('outdent');
+const Configstore  = require('configstore');
+const pkg          = require('../package.json');
+const chalk        = require('chalk');
+const ora          = require('ora');
+const outdent      = require('outdent');
+
+const conf = new Configstore(pkg.name);
 
 module.exports = {
   populateDb,
   clearDb,
+  setConfig,
   calculateDeliveryCost,
   calculatePossibleDeliveryRoutes,
   calculateCheapestRoute
@@ -36,6 +41,11 @@ async function populateDb() {
   }
 }
 
+/**
+ * Handles clear database action
+ *
+ * @returns {undefined}
+ */
 async function clearDb() {
   const spinner = ora('Clearing DB...').start();
 
@@ -54,6 +64,13 @@ async function clearDb() {
     console.log(chalk.bold.red(`Error occured clearing DB: ${err.message}`));
     return handleError(err);
   }
+}
+
+function setConfig(args) {
+  if (args.neo4jUri) conf.set('neo4j.uri', args.neo4jUri);
+  if (args.neo4jUser) conf.set('neo4j.user', args.neo4jUser);
+  if (args.neo4jPassword) conf.set('neo4j.password', args.neo4jPassword);
+  if (args.dataFile) conf.set('dataFileName', args.dataFile);
 }
 
 /**
