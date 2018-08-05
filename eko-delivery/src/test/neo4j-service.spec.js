@@ -5,8 +5,7 @@ const Configstore = require('configstore');
 const pkg         = require('../../package.json');
 const outdent     = require('outdent');
 
-const config = new Configstore(pkg.name);
-console.log(config);
+const conf = new Configstore(pkg.name);
 
 const fakeSession = {
   run: noop,
@@ -41,7 +40,7 @@ tap.afterEach(done => {
 tap.test('#populateDb()', async (t) => {
   t.test('should populate db calling corresponding neo4j query', async (tt) => {
     const expected = outdent`
-      LOAD CSV WITH HEADERS FROM "file:///${config.dataFileName}" AS row
+      LOAD CSV WITH HEADERS FROM "file:///${conf.get('dataFileName')}" AS row
       MERGE (from:Town {id: row.from, name: row.from})
       MERGE (to:Town {id: row.to, name: row.to})
       CREATE (from)-[:ROUTE {cost: toInt(row.cost)}]->(to)`;
@@ -148,11 +147,38 @@ tap.test('#calculatePossibleDeliveryRoutes()', async (t) => {
     tt.ok(fakeSession.close.calledOnce, 'session was closed');
     tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
   });
+
   t.test('should return number of possible routes between provided towns within specified max number of stops', async (tt) => {
     const fakeRoute = ['A', 'B'];
-    const fakeOpts = {maxStops: 10, routeReuse: true};
+    const fakeOpts = {maxStops: 10};
     const expectedQuery = outdent`
       MATCH p = (t0:Town {name: 'A'})-[r*..10]->(t1:Town {name: 'B'})
+      RETURN count(p)`;
+    const expectedNumberOfRoutes = 5;
+
+    const fakeResponse = {
+      records: [ { _fields: [ {low: expectedNumberOfRoutes, high: 0} ] } ]
+    };
+
+    sinon.stub(fakeSession, 'run').resolves(fakeResponse);
+    sinon.spy(fakeSession, 'close');
+    sinon.spy(fakeDriver, 'close');
+
+    const cost = await neo4jService.calculatePossibleDeliveryRoutes(fakeRoute, fakeOpts);
+
+    tt.equal(fakeSession.run.firstCall.args[0], expectedQuery, 'executed cypher query');
+    tt.equal(cost, expectedNumberOfRoutes, 'number of routes as expected');
+    tt.ok(fakeSession.close.calledOnce, 'session was closed');
+    tt.ok(fakeDriver.close.calledOnce, 'driver connection was closed');
+  });
+
+  t.test('should return number of possible routes between provided towns with cost less than provided value', async (tt) => {
+    const fakeRoute = ['A', 'B'];
+    const fakeOpts = {costLessThen: 100};
+    const expectedQuery = outdent`
+      MATCH p = (t0:Town {name: 'A'})-[r*..]->(t1:Town {name: 'B'})
+      WITH p, reduce(total = 0, x in relationships(p) | total + x.cost) as cost
+      WHERE cost < 100
       RETURN count(p)`;
     const expectedNumberOfRoutes = 5;
 

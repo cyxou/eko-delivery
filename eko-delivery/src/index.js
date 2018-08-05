@@ -57,6 +57,7 @@ program
 program
   .command('get-possible-routes <from> <to>')
   .option('--max-stops <val>', 'Maximum stops on the route', validateInt)
+  .option('--cost-less-than <val>', 'Cost less than this value', validateInt)
   .option('--no-route-reuse', 'Do not allow to use the same route twice')
   .description('Calculate the number of possible delivery routes between two towns')
   .action(actions.calculatePossibleDeliveryRoutes);
@@ -107,8 +108,9 @@ async function startInteractiveMode() {
       return actions[answers.action](answers.route);
 
     case 'calculatePossibleDeliveryRoutes':
-      return actions[answers.action](answers.route[0], answers.route[1], {
+      return actions[answers.action](answers.route, {
         maxStops: answers.maxStops,
+        costLessThen: answers.costLessThen,
         routeReuse: answers.routeReuse
       });
 

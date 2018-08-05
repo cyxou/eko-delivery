@@ -115,20 +115,19 @@ async function calculateDeliveryCost(route, towns) {
  * @param {string} route Route representation in the following format: "A,B,C,D"
  * @returns {number} Cost of the route delivery
  */
-async function calculatePossibleDeliveryRoutes(from, to,
-  { maxStops = 0, routeReuse = true }
-) {
-  let route = [from, to];
+async function calculatePossibleDeliveryRoutes(route, opts) {
+  //console.log('opts: ', opts);
+  const maxStops = opts.maxStops || -1;
+  const costLessThen = opts.costLessThen || -1;
 
   const spinner = ora(
-    `Calculating possible delivery routes between "${from}" and "${to}"` +
-    (maxStops ? ` within maximum of ${maxStops} stop(s)` : ``) + `...`
+    `Calculating possible delivery routes between "${route[0]}" and "${route[1]}"` +
+    (maxStops > -1 ? ` within maximum of ${maxStops} stop(s)` : ``) +
+    (costLessThen > -1 ? ` with cost less than ${costLessThen}` : ``) + `...`
   ).start();
 
   try {
-    const res = await neo4jService.calculatePossibleDeliveryRoutes(
-      route, {maxStops, routeReuse}
-    );
+    const res = await neo4jService.calculatePossibleDeliveryRoutes(route, opts);
 
     spinner.succeed();
 
@@ -136,7 +135,8 @@ async function calculatePossibleDeliveryRoutes(from, to,
 
     console.log(chalk.magenta(outdent`
       ${chalk.bold.green(res)} possible route(s) found` +
-      (maxStops ? ` within maximum of ${maxStops} stop(s)` : ``)
+      (maxStops > -1 ? ` within maximum of ${maxStops} stop(s)` : ``) +
+      (costLessThen > -1 ? ` and cost less than ${costLessThen}` : ``)
     ));
 
   } catch(err) {

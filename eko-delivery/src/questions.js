@@ -66,13 +66,30 @@ module.exports = [
   {
     type: 'input',
     name: 'maxStops',
-    message: 'How many stops are allowed for the route?',
+    message: 'How many stops are allowed (set negative value for unlimited stops)?',
     when: answer => answer.action === 'calculatePossibleDeliveryRoutes',
+    default: -1,
     validate: input => {
+      if (parseInt(input, 10) < 0) return true;
       if (!/^\d+$/.test(input)) {
         return 'Must be an integer value';
       } else return true;
-    }
+    },
+    filter: input => parseInt(input, 10)
+  },
+  {
+    type: 'input',
+    name: 'costLessThen',
+    message: 'With the cost less than this value (set negative value to not filter by cost)',
+    when: answer => answer.action === 'calculatePossibleDeliveryRoutes',
+    default: -1,
+    validate: input => {
+      if (parseInt(input, 10) < 0) return true;
+      if (!/^\d+$/.test(input)) {
+        return 'Must be an integer value';
+      } else return true;
+    },
+    filter: input => parseInt(input, 10)
   },
   {
     type: 'confirm',

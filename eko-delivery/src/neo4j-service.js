@@ -84,14 +84,24 @@ function calculateDeliveryCost(route) {
  *
  * @param {string[]} route Array of two towns, 'from' and 'to'
  * @param {Object} opts
- * @param {number} [opts.maxStops=0] Maximum number of stops for the route
- * @param {boolean} [opts.routeReuse=true] Allow to to use the same route twice
+ * @param {number} [opts.maxStops=-1] Maximum number of stops for the route
+ * @param {number} [opts.costLessThen=-1] Cost of the route less than this value
+ * @param {boolean} [opts.routeReuse=true] Allow to to use the same route twice (NOT IMPLEMENTED)
  * @returns {Promise}
  */
 function calculatePossibleDeliveryRoutes([from, to], opts) {
+  const maxStops = opts.maxStops || -1;
+  const costLessThen = opts.costLessThen || -1;
+
   let query = outdent`
-    MATCH p = (t0:Town {name: '${from}'})-[r*..${opts.maxStops ? opts.maxStops : ''}]->(t1:Town {name: '${to}'})
-    RETURN count(p)`;
+    MATCH p = (t0:Town {name: '${from}'})-[r*..${maxStops < 0 ? '' : maxStops}]->(t1:Town {name: '${to}'})` +
+    (costLessThen > 0 ? outdent`\n
+      WITH p, reduce(total = 0, x in relationships(p) | total + x.cost) as cost
+      WHERE cost < ${costLessThen}` : ''
+    ) +
+    '\nRETURN count(p)';
+
+  console.log(query);
 
   return makeDbRequest(query);
 }
