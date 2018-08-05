@@ -8,7 +8,6 @@ services:
     volumes:
       - ./neo4j/data:/data
       - ./neo4j/import:/import
-      - ./neo4j/plugins:/plugins
     environment:
       - NEO4J_AUTH=none
       - NEO4J_dbms_security_procedures_unrestricted=algo.*,apoc.*
