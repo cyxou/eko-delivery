@@ -94,7 +94,7 @@ module.exports = [
   {
     type: 'confirm',
     name: 'routeReuse',
-    message: 'Allow to use the same route twice?',
+    message: 'Allow to use the same route twice? (NOT IMPLEMENTED)',
     default: true,
     when: answer => answer.action === 'calculatePossibleDeliveryRoutes'
   },
