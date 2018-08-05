@@ -131,6 +131,13 @@ Calculate the cheapest delivery route between two towns
 | The cost of cheapest delivery route between E to D  |   9    |
 | The cost of cheapest delivery route between E to E  |   6    |
 
+## Configuration
+#### Neo4j server
+eko-delivery app configured to use Neo4j server running locally, hence the `bolt://localhost:7474` 
+uri in the config file . If the uri of your Neo4j server differs from it, use confiruration option of the eko-delivery app to set it right.
+
+### Sample data
+You may provide your own file for database population. Just put it into the ./neo4j/import folder and set its name in eko-delivery confiruration.
 
 ## TODO
  - Implement option to no allow same route to be used twice.
