@@ -101,8 +101,6 @@ function calculatePossibleDeliveryRoutes([from, to], opts) {
     ) +
     '\nRETURN count(p)';
 
-  console.log(query);
-
   return makeDbRequest(query);
 }
 
